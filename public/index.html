@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>BlockON - マルチプレイ</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #333; }
+    canvas { display: none; }
+    #crosshair, #loading, #menu, #main-menu { display: none; }
+    #room-select { display: flex; }
+    #crosshair {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 20px; height: 20px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    #crosshair::before, #crosshair::after {
+      content: '';
+      position: absolute;
+      background: white;
+      opacity: 0.7;
+    }
+    #crosshair::before { width: 2px; height: 20px; left: 9px; }
+    #crosshair::after { width: 20px; height: 2px; top: 9px; }
+    #menu, #main-menu, #room-select {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    #main-menu h1, #room-select h2 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 2px #000;
+    }
+    #menu h2 { font-size: 36px; margin-bottom: 20px; }
+    #menu button, #main-menu button, #room-select button {
+      margin: 10px; padding: 10px 20px;
+      font-size: 18px; background: #007bff;
+      border: none; color: white;
+      cursor: pointer; border-radius: 5px;
+    }
+    #menu button:hover, #main-menu button:hover, #room-select button:hover {
+      background: #0056b3;
+    }
+    #room-input { margin: 10px; padding: 10px; font-size: 16px; width: 250px; border-radius: 5px; border: none; }
+    #public-checkbox { margin: 10px; }
+    #server-list { margin: 20px; max-height: 200px; overflow-y: auto; width: 300px; background: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 5px; }
+    #server-list button { width: 100%; text-align: left; }
+    #error {
+      display: none;
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255, 0, 0, 0.8);
+      color: white; justify-content: center; align-items: center;
+      font-family: Arial, sans-serif; text-align: center; padding: 20px;
+    }
+    #loading {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.5); color: white;
+      padding: 15px 30px; border-radius: 5px;
+      font-family: Arial, sans-serif; font-size: 20px; font-weight: bold;
+      text-shadow: 2px 2px 2px #000; pointer-events: none; z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="main-menu">
+    <h1>BlockWorld</h1>
+    <button id="join-room-btn">ルームに参加</button>
+    <button id="exit-game-btn">終了</button>
+  </div>
+  <div id="room-select">
+    <h2>ルームに参加</h2>
+    <input id="room-input" type="text" placeholder="ルームコード">
+    <label><input id="public-checkbox" type="checkbox"> 公開サーバー</label>
+    <button id="join-room-submit-btn">ルーム作成/参加</button>
+    <div id="server-list"></div>
+    <button id="back-to-main-btn">メニューに戻る</button>
+  </div>
+  <div id="crosshair"></div>
+  <div id="menu">
+    <h2>メニュー</h2>
+    <button id="resume-game-btn">続行</button>
+    <button id="return-to-menu-btn">メニューに戻る</button>
+  </div>
+  <div id="error">
+    <p>WebGLを初期化できませんでした。以下のいずれかをお試しください<br>
+    - 最新のブラウザ（Chrome、Firefoxなど）を使用<br>
+    - グラフィックドライバを更新<br>
+    - <a href="https://get.webgl.org/" target="_blank">WebGLのサポートを確認</a><br>
+    - ブラウザの設定で「ハードウェアアクセラレーション」を有効化<br>
+    - <a href="https://www.khronos.org/webgl/wiki/Troubleshooting" target="_blank">WebGLトラブルシューティング</a></p>
+  </div>
+  <div id="loading">チャンクを読み込み中...</div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.min.js"></script>
+  <script src="/script.js"></script>
+</body>
+</html>
