@@ -5,7 +5,9 @@ module.exports = (req, res) => {
   const httpServer = http.createServer();
   const io = new Server(httpServer, {
     cors: { origin: '*' },
-    path: '/api/socket'
+    path: '/api/socket',
+    pingTimeout: 20000,
+    pingInterval: 25000
   });
 
   const rooms = new Map();
@@ -13,7 +15,6 @@ module.exports = (req, res) => {
   io.on('connection', (socket) => {
     console.log(`Player connected: ${socket.id}`);
 
-    // 公開ルーム一覧を送信
     socket.on('getPublicRooms', () => {
       const publicRooms = Array.from(rooms.entries())
         .filter(([_, room]) => room.isPublic)
@@ -25,7 +26,6 @@ module.exports = (req, res) => {
       console.log(`Sent public rooms to ${socket.id}:`, publicRooms);
     });
 
-    // ルーム参加
     socket.on('joinRoom', ({ roomId, isPublic }) => {
       if (!rooms.has(roomId)) {
         rooms.set(roomId, {
