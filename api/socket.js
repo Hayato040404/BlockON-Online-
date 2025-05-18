@@ -1,19 +1,29 @@
 const { Server } = require('socket.io');
 const http = require('http');
 
-// Vercelサーバーレス関数
 module.exports = (req, res) => {
-  // HTTPサーバーを作成
   const httpServer = http.createServer();
   const io = new Server(httpServer, {
     cors: { origin: '*' },
     path: '/api/socket'
   });
 
-  const rooms = new Map(); // ルームごとの状態 { roomId: { players, blocks, isPublic } }
+  const rooms = new Map();
 
   io.on('connection', (socket) => {
     console.log(`Player connected: ${socket.id}`);
+
+    // 公開ルーム一覧を送信
+    socket.on('getPublicRooms', () => {
+      const publicRooms = Array.from(rooms.entries())
+        .filter(([_, room]) => room.isPublic)
+        .map(([roomId, room]) => ({
+          roomId,
+          playerCount: room.players.size
+        }));
+      socket.emit('publicRooms', publicRooms);
+      console.log(`Sent public rooms to ${socket.id}:`, publicRooms);
+    });
 
     // ルーム参加
     socket.on('joinRoom', ({ roomId, isPublic }) => {
@@ -28,7 +38,6 @@ module.exports = (req, res) => {
       socket.join(roomId);
       room.players.set(socket.id, { position: [0, 10, 0], yaw: 0, pitch: 0 });
 
-      // ルーム情報を送信
       socket.emit('roomJoined', {
         roomId,
         players: Array.from(room.players.entries()),
@@ -36,7 +45,6 @@ module.exports = (req, res) => {
         isPublic
       });
 
-      // 他のプレイヤーに通知
       socket.to(roomId).emit('playerJoined', {
         id: socket.id,
         position: [0, 10, 0],
@@ -47,7 +55,6 @@ module.exports = (req, res) => {
       console.log(`Player ${socket.id} joined room ${roomId}, public: ${isPublic}`);
     });
 
-    // プレイヤー移動
     socket.on('playerMove', ({ roomId, position, yaw, pitch }) => {
       const room = rooms.get(roomId);
       if (room) {
@@ -56,7 +63,6 @@ module.exports = (req, res) => {
       }
     });
 
-    // ブロック配置
     socket.on('placeBlock', ({ roomId, x, y, z, type }) => {
       const room = rooms.get(roomId);
       if (room) {
@@ -66,7 +72,6 @@ module.exports = (req, res) => {
       }
     });
 
-    // ブロック破壊
     socket.on('breakBlock', ({ roomId, x, y, z }) => {
       const room = rooms.get(roomId);
       if (room) {
@@ -76,7 +81,6 @@ module.exports = (req, res) => {
       }
     });
 
-    // 切断処理
     socket.on('disconnect', () => {
       rooms.forEach((room, roomId) => {
         if (room.players.has(socket.id)) {
@@ -91,7 +95,6 @@ module.exports = (req, res) => {
     });
   });
 
-  // Vercelのレスポンス
   httpServer.once('request', (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Socket.IO server');
