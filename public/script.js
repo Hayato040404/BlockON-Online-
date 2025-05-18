@@ -377,40 +377,41 @@ function initGame() {
     initGame();
     renderer.domElement.style.display = 'block';
     renderer.domElement.requestPointerLock();
-
-    document.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('contextmenu', handleContextMenu);
     animate();
   }
 
-  // イベントリスナーを関数として定義
-  function handleMouseDown(e) {
-    if (document.getElementById('menu').style.display !== 'flex') {
-      if (e.button === 2) {
-        e.preventDefault();
+  // ブロック操作イベント
+  function setupBlockEvents() {
+    document.addEventListener('mousedown', (e) => {
+      if (document.getElementById('menu').style.display !== 'flex') {
+        if (e.button === 2) {
+          e.preventDefault();
+          placeBlock();
+        }
+        if (e.button === 0 && document.pointerLockElement) {
+          breakBlock();
+        }
+      }
+    });
+
+    document.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      if (document.getElementById('menu').style.display !== 'flex') {
         placeBlock();
       }
-      if (e.button === 0 && document.pointerLockElement) {
-        breakBlock();
-      }
-    }
-  }
-
-  function handleContextMenu(e) {
-    e.preventDefault();
-    if (document.getElementById('menu').style.display !== 'flex') {
-      placeBlock();
-    }
+    });
   }
 
   // ウィンドウリサイズイベント
-  window.addEventListener('resize', () => {
-    if (renderer) {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-  });
+  function setupResizeEvent() {
+    window.addEventListener('resize', () => {
+      if (renderer) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+    });
+  }
 
   // イベントリスナー登録
   function initializeEventListeners() {
@@ -427,6 +428,8 @@ function initGame() {
   function initialize() {
     console.log('Initializing BlockWorld');
     initializeEventListeners();
+    setupBlockEvents();
+    setupResizeEvent();
     updateServerList();
   }
 
